@@ -1,4 +1,6 @@
 import java.util.concurrent.*;
+import java.util.concurrent.locks.*;
+
 
 public class AccountWithoutSync {
     private static final Account account = new Account();
@@ -31,20 +33,24 @@ public class AccountWithoutSync {
 
 //    an inner class for account
     private static class Account {
-        private int balance = 5;
+        private static Lock lock = new ReentrantLock(); // Create a lock
+        private int balance = 0;
 
         public int getBalance() {
             return balance;
         }
 
         public synchronized void deposit(int amount) {
+            lock.lock(); // Acquire the lock
             int newBalance = balance + amount;
 
+            try{
             // This delay is deliberately added to magnify the
             // data-corruption problem and make it easy to see.
-            try{
                 Thread.sleep(5);
             } catch (InterruptedException ex) {
+            } finally {
+                lock.unlock(); // Release the lock
             }
 
             balance = newBalance;
